@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>トレンド羅針盤</title>
+<meta name="description" content="いまの流行を4象限の地図にして、性格診断であなたの現在地を探すWebアプリ">
+<meta name="theme-color" content="#1D2B53">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ 認証画面 ============ -->
+<section id="auth-screen" class="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-mark" aria-hidden="true">
+      <svg viewBox="0 0 120 120"><rect x="6" y="6" width="54" height="54" class="m-q2"/><rect x="60" y="6" width="54" height="54" class="m-q1"/><rect x="6" y="60" width="54" height="54" class="m-q3"/><rect x="60" y="60" width="54" height="54" class="m-q4"/><path d="M84 30l4.7 9.6 10.6 1.5-7.7 7.5 1.8 10.5L84 54.1l-9.4 5 1.8-10.5-7.7-7.5 10.6-1.5z" class="m-star"/></svg>
+    </div>
+    <h1 class="brand">トレンド羅針盤</h1>
+    <p class="auth-lead">いまの流行を地図にして、あなたの現在地を探します。</p>
+
+    <div class="tabs" role="tablist" aria-label="ログイン方法">
+      <button type="button" role="tab" data-auth-tab="login" aria-selected="true">ログイン</button>
+      <button type="button" role="tab" data-auth-tab="register" aria-selected="false">新規登録</button>
+      <button type="button" role="tab" data-auth-tab="forgot" aria-selected="false">パスワードを忘れた</button>
+    </div>
+
+    <div id="auth-notice" class="notice" role="status" hidden></div>
+
+    <form id="login-form" class="stack" data-auth-panel="login">
+      <label>メールアドレス
+        <input type="email" name="email" autocomplete="email" required>
+      </label>
+      <label>パスワード
+        <span class="pw-wrap"><input type="password" name="password" autocomplete="current-password" required><button type="button" class="pw-toggle" aria-label="パスワードを表示"></button></span>
+      </label>
+      <button class="btn primary block" type="submit">ログイン</button>
+    </form>
+
+    <form id="register-form" class="stack" data-auth-panel="register" hidden>
+      <label>ニックネーム
+        <input name="nickname" maxlength="20" autocomplete="nickname" required>
+      </label>
+      <label>メールアドレス
+        <input type="email" name="email" autocomplete="email" required>
+      </label>
+      <p class="hint">仮パスワードをメールでお送りします。初めてログインしたときに、新しいパスワードへ変更していただきます。</p>
+      <button class="btn primary block" type="submit">仮パスワードを発行</button>
+    </form>
+
+    <form id="forgot-form" class="stack" data-auth-panel="forgot" hidden>
+      <label>登録したメールアドレス
+        <input type="email" name="email" autocomplete="email" required>
+      </label>
+      <p class="hint">新しい仮パスワードをメールでお送りします。</p>
+      <button class="btn primary block" type="submit">仮パスワードを再発行</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ アプリ本体 ============ -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <p class="brand-sm"><span class="brand-star" aria-hidden="true">★</span>トレンド羅針盤</p>
+      <nav class="mainnav" role="tablist" aria-label="画面の切り替え">
+        <button type="button" role="tab" data-view="map" aria-selected="true">マップ</button>
+        <button type="button" role="tab" data-view="calendar" aria-selected="false">カレンダー</button>
+        <button type="button" role="tab" data-view="report" aria-selected="false">傾向分析</button>
+      </nav>
+      <div class="user-menu">
+        <span id="user-name" class="user-name"></span>
+        <button type="button" id="btn-pw" class="link-btn">パスワード変更</button>
+        <button type="button" id="btn-logout" class="link-btn">ログアウト</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- ===== マップ ===== -->
+    <section id="view-map" class="view">
+      <div class="genre-bar">
+        <h2 class="section-title">ジャンルを選ぶ</h2>
+        <div id="genre-chips" class="chips" role="radiogroup" aria-label="ジャンル"></div>
+        <div id="genre-other" class="genre-other" hidden>
+          <label>ジャンルを入力
+            <input id="genre-other-input" maxlength="40" placeholder="例：盆栽、キャンプ飯、ボードゲーム">
+          </label>
+        </div>
+        <div class="genre-actions">
+          <button type="button" id="btn-analyze" class="btn primary">流行を地図にする</button>
+          <button type="button" id="btn-refresh" class="btn ghost" disabled>最新の情報で作り直す</button>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <div class="map-col">
+          <div id="map-head" class="map-head" hidden>
+            <p id="map-date" class="map-date"></p>
+            <h2 id="map-title" class="map-title"></h2>
+            <p id="map-headline" class="map-headline"></p>
+            <p id="map-overview" class="map-overview"></p>
+            <div class="map-tools">
+              <button type="button" id="btn-diag" class="btn star">★ 性格診断で現在地を出す</button>
+              <button type="button" id="btn-tts-summary" class="btn ghost">▶ 解説を聞く</button>
+            </div>
+          </div>
+
+          <div id="map-wrap" class="map-wrap">
+            <svg id="map" viewBox="0 0 600 600" role="img" aria-label="流行の4象限マップ"></svg>
+            <div id="map-empty" class="map-empty">
+              <p>ジャンルを選んで「流行を地図にする」を押すと、ここに流行の地図が描かれます。</p>
+            </div>
+          </div>
+          <p id="map-hint" class="map-hint" hidden>番号の点をタップすると詳しく、何もない場所をタップするとその周辺の流行を案内します。</p>
+
+          <section id="me-reco" class="me-reco" hidden></section>
+        </div>
+
+        <div class="side-col">
+          <aside id="drill" class="drill" aria-label="深掘り" hidden>
+            <div id="drill-body"></div>
+          </aside>
+          <section id="side-list" class="side-list" hidden>
+            <h2 class="section-title">地図に載っている流行</h2>
+            <ol id="item-list" class="item-list"></ol>
+            <div id="sources" class="sources"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== カレンダー ===== -->
+    <section id="view-calendar" class="view" hidden>
+      <div class="cal-layout">
+        <div class="cal-main">
+          <div class="cal-head">
+            <button type="button" class="icon-btn" data-act="month-prev" aria-label="前の月">‹</button>
+            <h2 id="cal-title" class="cal-title"></h2>
+            <button type="button" class="icon-btn" data-act="month-next" aria-label="次の月">›</button>
+            <button type="button" class="btn ghost small" data-act="month-today">今月</button>
+          </div>
+          <ul class="legend">
+            <li><i class="st-like"></i>気になる</li>
+            <li><i class="st-check"></i>チェックした</li>
+            <li><i class="st-done"></i>体験した</li>
+            <li><i class="st-diary"></i>日記</li>
+          </ul>
+          <div class="cal-week" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+          <div id="cal-grid" class="cal-grid"></div>
+        </div>
+        <aside id="cal-day" class="cal-day"></aside>
+      </div>
+    </section>
+
+    <!-- ===== 傾向分析 ===== -->
+    <section id="view-report" class="view" hidden>
+      <div class="report-layout">
+        <div class="report-side">
+          <h2 class="section-title">最近のあなたの関心傾向</h2>
+          <p class="hint">これまでの記録と性格診断をもとに、AIが傾向を読み解き、次に試したい流行を提案します。記録がたまるほど具体的になります。</p>
+          <button type="button" id="btn-run-report" class="btn primary block">傾向を分析する</button>
+          <div id="report-stats" class="report-stats"></div>
+        </div>
+        <div id="report-body" class="report-body"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  <p>トレンド羅針盤 <span id="version"></span></p>
+</footer>
+
+<datalist id="genre-datalist"></datalist>
+
+<!-- ============ パスワード変更 ============ -->
+<dialog id="pw-modal" class="modal">
+  <form id="pw-form" class="stack">
+    <h2 class="modal-title">パスワードの変更</h2>
+    <p id="pw-lead" class="hint"></p>
+    <label>現在のパスワード（仮パスワード）
+      <span class="pw-wrap"><input type="password" name="current" autocomplete="current-password" required><button type="button" class="pw-toggle" aria-label="パスワードを表示"></button></span>
+    </label>
+    <label>新しいパスワード
+      <span class="pw-wrap"><input type="password" name="next" autocomplete="new-password" minlength="8" required><button type="button" class="pw-toggle" aria-label="パスワードを表示"></button></span>
+    </label>
+    <p class="hint">8文字以上で、英字と数字を両方含めてください。</p>
+    <label>新しいパスワード（確認）
+      <span class="pw-wrap"><input type="password" name="confirm" autocomplete="new-password" minlength="8" required><button type="button" class="pw-toggle" aria-label="パスワードを表示"></button></span>
+    </label>
+    <div class="modal-actions">
+      <button type="button" id="pw-cancel" class="btn ghost" data-act="close-modal">やめる</button>
+      <button type="submit" class="btn primary">パスワードを変更</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ 性格診断 ============ -->
+<dialog id="diag-modal" class="modal wide">
+  <div class="modal-head">
+    <h2 class="modal-title">★ 現在地診断</h2>
+    <button type="button" class="icon-btn" data-act="close-modal" aria-label="閉じる">×</button>
+  </div>
+  <div id="diag-body"></div>
+</dialog>
+
+<!-- ============ 記録 ============ -->
+<dialog id="record-modal" class="modal">
+  <form id="record-form" class="stack">
+    <h2 class="modal-title">記録する</h2>
+    <p id="record-item" class="record-item"></p>
+    <fieldset class="status-set">
+      <legend>いまの状態</legend>
+      <label><input type="radio" name="status" value="気になる" checked><span class="st-like">気になる</span></label>
+      <label><input type="radio" name="status" value="チェックした"><span class="st-check">チェックした</span></label>
+      <label><input type="radio" name="status" value="体験した"><span class="st-done">体験した</span></label>
+    </fieldset>
+    <label>日付
+      <input type="date" name="date" required>
+    </label>
+    <label>メモ・日記
+      <textarea name="memo" rows="4" maxlength="1000" placeholder="感じたこと、次にやりたいことなど"></textarea>
+    </label>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" data-act="close-modal">やめる</button>
+      <button type="submit" class="btn primary">記録を保存</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="loading" class="loading" hidden>
+  <div class="loading-box">
+    <svg class="loading-compass" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="M24 7l4 17-4 17-4-17z"/></svg>
+    <p id="loading-msg"></p>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
