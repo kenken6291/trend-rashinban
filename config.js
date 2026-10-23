@@ -8,7 +8,7 @@ window.APP_CONFIG = {
   VERSION: 'v1.0.0',
 
   // GAS ウェブアプリの URL（デプロイ後に貼り替え）
-  GAS_URL: 'https://script.google.com/macros/s/XXXXXXXXXXXXXXXX/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyI75JG3_t7mSS2sr4CWU9DuoTIyg4tHXitIPwMUVXg2IEMeV9pj7Ry2sOUZFMMSqyn2Q/exec',
 
   // 通信のタイムアウト（ミリ秒）。検索付きのAI生成は時間がかかるため長め
   REQUEST_TIMEOUT_MS: 150000,
