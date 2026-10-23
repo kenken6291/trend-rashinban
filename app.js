@@ -15,7 +15,7 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* noop */ } },
     del(k) { try { localStorage.removeItem(k); } catch (e) { /* noop */ } }
   };
-  const KEY = { token: 'trs_token', me: 'trs_me', genre: 'trs_genre' };
+  const KEY = { token: 'trs_token', me: 'trs_me', genre: 'trs_genre', help: 'trs_help_hide' };
   const STATUS = ['気になる', 'チェックした', '体験した', '日記'];
   const STATUS_CLASS = { '気になる': 'st-like', 'チェックした': 'st-check', '体験した': 'st-done', '日記': 'st-diary' };
 
@@ -237,6 +237,7 @@
     renderGenres();
     renderMap();
     if (user.mustChange) openPwModal(true);
+    else maybeShowHelp();
   }
 
   function handleExpired(msg) {
@@ -289,13 +290,33 @@
     if (!/^(?=.*[A-Za-z])(?=.*\d).{8,64}$/.test(nx)) { toast('8文字以上で、英字と数字を両方含めてください', 'error'); return; }
     try {
       await api('changePassword', { current: cur, next: nx }, { loading: 'パスワードを変更しています' });
+      const wasForced = state.pwForced;
       state.pwForced = false;
       if (state.user) state.user.mustChange = false;
       $('#pw-modal').close();
       toast('パスワードを変更しました');
+      if (wasForced) maybeShowHelp();
     } catch (err) {
       toast(err.message, 'error');
     }
+  }
+
+  /* =========================================================
+   *  使い方
+   * ========================================================= */
+  function openHelp(sectionId) {
+    const dlg = $('#help-modal');
+    $('#help-hide-next').checked = store.get(KEY.help) === '1';
+    $$('#help-modal details').forEach(d => { d.open = false; });
+    const target = sectionId ? document.getElementById(sectionId) : null;
+    if (target) target.open = true;
+    if (!dlg.open) dlg.showModal();
+    const body = $('.help-body', dlg);
+    if (target) setTimeout(() => body.scrollTo({ top: target.offsetTop - body.offsetTop - 8 }), 30);
+    else body.scrollTop = 0;
+  }
+  function maybeShowHelp() {
+    if (store.get(KEY.help) !== '1') openHelp('help-make');
   }
 
   /* =========================================================
@@ -1211,6 +1232,7 @@
         break;
       }
       case 'close-drill': closeDrill(); break;
+      case 'help': openHelp(el.dataset.section); break;
       case 'open-item': {
         const dlg = el.closest('dialog');
         if (dlg) dlg.close();
@@ -1287,6 +1309,9 @@
     $('#pw-modal').addEventListener('cancel', e => { if (state.pwForced) e.preventDefault(); });
     $('#diag-modal').addEventListener('close', () => { stopAudio(); state.diag = null; });
     $('#record-form').addEventListener('submit', onRecordSubmit);
+    $('#help-hide-next').addEventListener('change', e => {
+      if (e.target.checked) store.set(KEY.help, '1'); else store.del(KEY.help);
+    });
     $('#btn-run-report').addEventListener('click', runReport);
 
     document.addEventListener('click', onAction);

@@ -5,7 +5,7 @@
  */
 window.APP_CONFIG = {
   APP_NAME: 'トレンド羅針盤',
-  VERSION: 'v1.0.0',
+  VERSION: 'v1.1.0',
 
   // GAS ウェブアプリの URL（デプロイ後に貼り替え）
   GAS_URL: 'https://script.google.com/macros/s/AKfycbyI75JG3_t7mSS2sr4CWU9DuoTIyg4tHXitIPwMUVXg2IEMeV9pj7Ry2sOUZFMMSqyn2Q/exec',

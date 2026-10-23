@@ -22,6 +22,7 @@
     </div>
     <h1 class="brand">トレンド羅針盤</h1>
     <p class="auth-lead">いまの流行を地図にして、あなたの現在地を探します。</p>
+    <p class="auth-help"><button type="button" class="link-btn" data-act="help">このアプリの使い方を見る</button></p>
 
     <div class="tabs" role="tablist" aria-label="ログイン方法">
       <button type="button" role="tab" data-auth-tab="login" aria-selected="true">ログイン</button>
@@ -74,6 +75,7 @@
       </nav>
       <div class="user-menu">
         <span id="user-name" class="user-name"></span>
+        <button type="button" id="btn-help" class="link-btn" data-act="help">使い方</button>
         <button type="button" id="btn-pw" class="link-btn">パスワード変更</button>
         <button type="button" id="btn-logout" class="link-btn">ログアウト</button>
       </div>
@@ -113,10 +115,10 @@
           <div id="map-wrap" class="map-wrap">
             <svg id="map" viewBox="0 0 600 600" role="img" aria-label="流行の4象限マップ"></svg>
             <div id="map-empty" class="map-empty">
-              <p>ジャンルを選んで「流行を地図にする」を押すと、ここに流行の地図が描かれます。</p>
+              <p>ジャンルを選んで「流行を地図にする」を押すと、ここに流行の地図が描かれます。<br><button type="button" class="link-btn" data-act="help">はじめての方は使い方へ</button></p>
             </div>
           </div>
-          <p id="map-hint" class="map-hint" hidden>番号の点をタップすると詳しく、何もない場所をタップするとその周辺の流行を案内します。</p>
+          <p id="map-hint" class="map-hint" hidden>番号の点をタップすると詳しく、何もない場所をタップするとその周辺の流行を案内します。<button type="button" class="link-btn" data-act="help" data-section="help-map">地図の見方</button></p>
 
           <section id="me-reco" class="me-reco" hidden></section>
         </div>
@@ -177,6 +179,129 @@
 </footer>
 
 <datalist id="genre-datalist"></datalist>
+
+<!-- ============ 使い方 ============ -->
+<dialog id="help-modal" class="modal wide help-modal" aria-labelledby="help-title">
+  <div class="modal-head">
+    <h2 id="help-title" class="modal-title">トレンド羅針盤の使い方</h2>
+    <button type="button" class="icon-btn" data-act="close-modal" aria-label="閉じる">×</button>
+  </div>
+  <div class="help-body">
+    <p class="help-lead">いまの流行を「2つの軸で分けた地図」にして眺め、性格診断で自分の立ち位置を探し、気になったものを記録していくアプリです。基本の流れは次のとおりです。</p>
+    <ol class="help-flow">
+      <li><span>ジャンルを選んで地図を作る</span></li>
+      <li><span>気になる点をタップして深掘りする</span></li>
+      <li><span>性格診断で★現在地を出す</span></li>
+      <li><span>気になる・体験したを記録する</span></li>
+      <li><span>カレンダーと傾向分析で振り返る</span></li>
+    </ol>
+
+    <details id="help-start">
+      <summary>はじめに：登録とログイン</summary>
+      <ol class="help-steps">
+        <li>「新規登録」でニックネームとメールアドレスを入力し、「仮パスワードを発行」を押します。</li>
+        <li>メールで届いた仮パスワードでログインします。届かないときは迷惑メールフォルダも確認してください。</li>
+        <li>初回は新しいパスワードの設定画面が出ます。英字と数字を含む8文字以上で設定してください。</li>
+      </ol>
+      <p>パスワードの入力欄にある目のマークを押すと、入力した文字を確かめられます。パスワードを忘れたときは「パスワードを忘れた」から仮パスワードを再発行できます。続けて5回まちがえると、30分ログインできなくなります。</p>
+    </details>
+
+    <details id="help-make">
+      <summary>流行の地図を作る</summary>
+      <ol class="help-steps">
+        <li>「マップ」画面でジャンルを選びます。一覧にないジャンルは「その他」を選んで自由に入力できます（例：盆栽、ボードゲーム）。</li>
+        <li>「流行を地図にする」を押します。AIが最新の話題を調べるため、20〜60秒ほどかかります。</li>
+        <li>地図と一緒に、このジャンルのいまを一言で表した見出しと解説が出ます。「解説を聞く」で読み上げます。</li>
+      </ol>
+      <p>同じ日に同じジャンルを選ぶと、作った地図がすぐに表示されます。改めて調べ直したいときは「最新の情報で作り直す」を押してください。</p>
+    </details>
+
+    <details id="help-map">
+      <summary>地図の見方</summary>
+      <p>地図は横と縦の2本の軸で4つのエリアに分かれています。軸の意味はジャンルごとにAIが決め、両端に書いてあります（例：横は「王道」と「ニッチ」、縦は「ライト」と「ディープ」）。</p>
+      <ul class="help-list">
+        <li>色分けされた4つのエリアには、それぞれの特徴を表す名前が隅に書いてあります。</li>
+        <li>番号のついた点が流行のアイテムです。番号は地図の右（スマホでは下）の一覧と対応しています。</li>
+        <li>中心に近いほど中間的、端に近いほどその性格がはっきりしたものです。</li>
+        <li>性格診断をすると、★があなたの現在地、赤い丸が近い流行、点線の丸が対角線上の流行を示します。</li>
+      </ul>
+    </details>
+
+    <details id="help-drill">
+      <summary>詳しく見る（深掘り）</summary>
+      <ul class="help-list">
+        <li><strong>番号の点をタップ</strong>すると、そのアイテムと近くのアイテムの説明が出ます。</li>
+        <li><strong>何もない場所をタップ</strong>すると、その周辺にある流行をまとめて案内します。「この辺りが気になる」というときに便利です。</li>
+        <li>続いてAIが深掘りガイドを作ります。おすすめ、はじめの一歩、関連キーワード、もっと楽しむ視点が出ます。「音声で聞く」で読み上げます。</li>
+        <li>アウトドアやロケ地など場所のある流行では「現地を空から見る」が出ます。航空写真を見たり、Google Earthで開いたりできます。「地点をKMLで保存」したファイルは、Google Earth Studioでフライスルー映像を作るときに使えます。</li>
+      </ul>
+      <p>スマホでは画面の下から説明が出てきます。右上の×か、まわりの暗い部分を押すと閉じます。</p>
+    </details>
+
+    <details id="help-diag">
+      <summary>性格診断で現在地を出す</summary>
+      <ol class="help-steps">
+        <li>地図を作ったあと「★ 性格診断で現在地を出す」を押します。</li>
+        <li>そのジャンルに合わせた質問が4問出ます。いまの気分に近いものを選んでください。</li>
+        <li>結果としてタイプ名と解説が出て、地図に★が立ちます。</li>
+      </ol>
+      <p>「あなたに近い流行」は気分に合いそうなもの、「あえて対角線の流行」はふだん選ばない方向から視野を広げてくれるものです。気分が変わったら「診断をやり直す」でいつでもやり直せます。</p>
+    </details>
+
+    <details id="help-record">
+      <summary>記録する</summary>
+      <p>流行の説明についている3つのボタンで記録できます。深掘りガイドのおすすめも「記録する」で残せます。</p>
+      <ul class="help-list">
+        <li><span class="st-like">気になる</span>：これから試したいもの</li>
+        <li><span class="st-check">チェックした</span>：調べた、見てみたもの</li>
+        <li><span class="st-done">体験した</span>：実際にやった、観た、食べたもの</li>
+      </ul>
+      <p>日付とメモ（感想や日記）も一緒に残せます。記録は後から傾向分析に使われます。</p>
+    </details>
+
+    <details id="help-calendar">
+      <summary>カレンダーで振り返る</summary>
+      <ul class="help-list">
+        <li>記録のある日には色の点がつきます。色は記録の状態を表しています。</li>
+        <li>日付を押すと、その日の記録が表示されます。状態やメモを直して「変更を保存」、不要な記録は「削除」できます。</li>
+        <li>「この日の記録を書き足す」から、地図にない出来事や日記も残せます。</li>
+        <li>‹ › で前後の月へ、「今月」で今日の日付に戻ります。</li>
+      </ul>
+    </details>
+
+    <details id="help-report">
+      <summary>傾向分析</summary>
+      <p>記録が3件以上たまったら「傾向分析」画面で「傾向を分析する」を押します。AIが記録と診断結果を読み解き、次の内容をまとめます。</p>
+      <ul class="help-list">
+        <li>最近のあなたを一言で表した見出しと、関心の傾向</li>
+        <li>次に挑戦したいジャンル3つ（「この地図を見る」でそのジャンルの地図へ移動）</li>
+        <li>意外性のあるおすすめと、背中を押すひとこと</li>
+      </ul>
+      <p>記録が増えるほど、具体的な分析になります。月に一度くらい分析し直すのがおすすめです。</p>
+    </details>
+
+    <details id="help-faq">
+      <summary>こんなときは</summary>
+      <dl class="help-faq">
+        <dt>地図ができるまで時間がかかる</dt>
+        <dd>最新の話題を調べてから作るため、1分ほどかかることがあります。そのままお待ちください。</dd>
+        <dt>「AIが混み合っています」と出た</dt>
+        <dd>少し時間をおいてから、もう一度押してください。</dd>
+        <dt>音声が聞こえない</dt>
+        <dd>スマホのマナーモードや音量を確認してください。音声の準備に数秒かかります。</dd>
+        <dt>「ログインの有効期限が切れました」と出た</dt>
+        <dd>しばらく操作しないと自動でログアウトします。もう一度ログインしてください。</dd>
+        <dt>流行の情報はどこまで正確？</dt>
+        <dd>AIがウェブ上の情報をもとにまとめたものです。参考にした情報のリンクを一覧の下に表示しているので、気になるものは元の情報も確かめてください。</dd>
+      </dl>
+    </details>
+
+    <label class="help-check"><input type="checkbox" id="help-hide-next"> 次回から自動で表示しない</label>
+  </div>
+  <div class="modal-actions">
+    <button type="button" class="btn primary" data-act="close-modal">はじめる</button>
+  </div>
+</dialog>
 
 <!-- ============ パスワード変更 ============ -->
 <dialog id="pw-modal" class="modal">

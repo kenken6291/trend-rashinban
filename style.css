@@ -571,3 +571,29 @@ input:focus, select:focus, textarea:focus { border-color: var(--focus); outline:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- 使い方 ---------- */
+.auth-help { margin: -12px 0 16px; }
+.auth-help .link-btn, .map-empty .link-btn, .map-hint .link-btn { font-size: .9rem; color: var(--q3-ink); }
+.map-empty .link-btn { pointer-events: auto; margin-top: 4px; }
+.map-hint .link-btn { margin-left: .5em; }
+.help-modal { width: min(720px, calc(100vw - 24px)); }
+.help-body { display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 210px); overflow-y: auto; padding-right: 4px; margin-bottom: 14px; }
+.help-lead { color: var(--ink-2); }
+.help-flow { list-style: none; counter-reset: flow; padding: 0; margin: 4px 0 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; }
+.help-flow li { counter-increment: flow; background: var(--paper); border-radius: var(--r-m); padding: 10px 12px; font-weight: 700; font-size: .92rem; line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+.help-flow li::before { content: counter(flow); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--surface); display: grid; place-items: center; font-size: .8rem; }
+.help-body details { border: 2px solid var(--line-soft); border-radius: var(--r-m); background: var(--surface); }
+.help-body details[open] { border-color: var(--ink-2); }
+.help-body summary { cursor: pointer; padding: 12px 16px; font-weight: 700; font-size: 1.05rem; min-height: 48px; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.help-body summary::-webkit-details-marker { display: none; }
+.help-body summary::after { content: "＋"; color: var(--ink-2); flex: none; }
+.help-body details[open] summary::after { content: "－"; }
+.help-body details > :not(summary) { margin: 0 16px 12px; }
+.help-steps, .help-list { padding-left: 1.4em; }
+.help-steps li, .help-list li { margin-bottom: 6px; }
+.help-list span { font-weight: 700; }
+.help-faq dt { font-weight: 700; margin-top: 8px; }
+.help-faq dd { margin: 2px 0 0; color: var(--ink-2); }
+.help-check { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; font-size: .92rem; margin-top: 4px; }
+.help-check input { width: 22px; height: 22px; min-height: 0; }
