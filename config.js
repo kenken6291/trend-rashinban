@@ -5,7 +5,7 @@
  */
 window.APP_CONFIG = {
   APP_NAME: 'トレンド羅針盤',
-  VERSION: 'v1.1.0',
+  VERSION: 'v1.2.0',
 
   // GAS ウェブアプリの URL（デプロイ後に貼り替え）
   GAS_URL: 'https://script.google.com/macros/s/AKfycbyI75JG3_t7mSS2sr4CWU9DuoTIyg4tHXitIPwMUVXg2IEMeV9pj7Ry2sOUZFMMSqyn2Q/exec',
@@ -14,7 +14,7 @@ window.APP_CONFIG = {
   REQUEST_TIMEOUT_MS: 150000,
 
   // ジャンル候補（このほかに「その他」で自由入力できます）
-  GENRES: ['ドラマ', '映画', '音楽', '本', '小説', 'スポーツ', 'アウトドア', '料理', '服', '化粧', 'ヘアスタイル', '会話ネタ', 'お笑い', '演劇'],
+  GENRES: ['ドラマ', '映画', '音楽', '本', '小説', 'スポーツ', 'アウトドア', '旅行', '料理', '服', '化粧', 'ヘアスタイル', '会話ネタ', 'お笑い', '演劇'],
 
   // Gemini 関連（モデル名・APIキーは GAS 側のスクリプトプロパティで設定）
   GEMINI: {

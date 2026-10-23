@@ -1,7 +1,7 @@
 /**
  * =========================================================
  *  トレンド羅針盤（trend-rashinban） - Google Apps Script バックエンド
- *  Version: v1.0.0
+ *  Version: v1.2.0
  *
  *  ・doPost(JSON / Content-Type: text/plain) で全APIを受け付け
  *  ・DB: Google スプレッドシート（Users / Trends / History / Profiles / Reports / Assets）
@@ -14,7 +14,7 @@
  */
 
 const APP_NAME = 'トレンド羅針盤';
-const APP_VERSION = 'v1.0.0';
+const APP_VERSION = 'v1.2.0';
 const TZ = 'Asia/Tokyo';
 
 const SHEET_HEADERS = {
@@ -26,7 +26,7 @@ const SHEET_HEADERS = {
   Assets:   ['keyword', 'genre', 'driveFileId', 'type', 'note']
 };
 
-const GENRE_LIST = ['ドラマ', '映画', '音楽', '本', '小説', 'スポーツ', 'アウトドア', '料理', '服', '化粧', 'ヘアスタイル', '会話ネタ', 'お笑い', '演劇'];
+const GENRE_LIST = ['ドラマ', '映画', '音楽', '本', '小説', 'スポーツ', 'アウトドア', '旅行', '料理', '服', '化粧', 'ヘアスタイル', '会話ネタ', 'お笑い', '演劇'];
 const STATUSES = ['気になる', 'チェックした', '体験した', '日記'];
 
 const SESSION_TTL = 21600;   // 6時間（CacheService の上限）
@@ -571,7 +571,7 @@ function trendPrompt(genre, today, n, search) {
     '- 各アイテムの x, y は -100〜100 の整数。4つの象限すべてにアイテムが入るように散らし、0付近に集中させない。',
     '- quadrants の q1 は x>0かつy>0、q2 は x<0かつy>0、q3 は x<0かつy<0、q4 は x>0かつy<0 の領域の呼び名（10文字以内）。',
     '- summary は各40〜80文字、keywords は3〜5個。',
-    '- ロケ地、アウトドアのスポット、聖地、会場、観光地など場所と結びつくものは place に代表地点の名称と緯度経度を入れる。場所と関係なければ place は null。',
+    '- ロケ地、アウトドアのスポット、旅行先・観光地、聖地、会場など場所と結びつくものは place に代表地点の名称と緯度経度を入れる。場所と関係なければ place は null。',
     '- 架空のもの、確信の持てない情報は入れない。',
     '- 出力はJSONのみ。前置き、説明、コードブロック記号は書かない。',
     '',
