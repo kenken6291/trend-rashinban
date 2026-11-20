@@ -1,7 +1,7 @@
 /**
  * =========================================================
  *  トレンド羅針盤（trend-rashinban） - Google Apps Script バックエンド
- *  Version: v1.2.0
+ *  Version: v1.3.0
  *
  *  ・doPost(JSON / Content-Type: text/plain) で全APIを受け付け
  *  ・DB: Google スプレッドシート（Users / Trends / History / Profiles / Reports / Assets）
@@ -14,7 +14,23 @@
  */
 
 const APP_NAME = 'トレンド羅針盤';
-const APP_VERSION = 'v1.2.0';
+const APP_VERSION = 'v1.3.0';
+
+/* ---------- Gemini モデル ----------
+ * 決定順：
+ *   1. 画面の「AIモデル」で選ばれたモデル（リクエストの model）
+ *   2. スクリプトプロパティ GEMINI_MODEL（空なら自動）
+ *   3. 汎用の最新モデル FALLBACK_GEMINI_MODELS を先頭から
+ * 指定モデルが存在しない・未公開・権限なしの場合は、FALLBACK を順に試して自動で切り替えます。
+ *   gemini-flash-latest : Google が常に最新Flashを指すエイリアス
+ *   gemini-4-hydrogen   : 2026年11月時点の汎用最新モデル（日々の暮らしをサポート）
+ *   gemini-3.8-flash    : 最終的な保険
+ */
+const FALLBACK_GEMINI_MODELS = ['gemini-flash-latest', 'gemini-4-hydrogen', 'gemini-3.8-flash'];
+const GEMINI_MODEL_PATTERN = /^gemini-[a-z0-9][a-z0-9.\-]{0,60}$/;
+const LEGACY_DEFAULT_MODELS = ['gemini-2.5-flash']; // 旧版 setup() の既定値。設定が残っていても「自動」とみなす
+let REQ_MODEL = '';   // このリクエストで使うモデル
+let USED_MODEL = '';  // 実際に応答したモデル
 const TZ = 'Asia/Tokyo';
 
 const SHEET_HEADERS = {
@@ -38,7 +54,7 @@ const HASH_ROUNDS = 100;
  *  エントリポイント
  * ========================================================= */
 function doGet(e) {
-  return jsonOut({ ok: true, app: APP_NAME, version: APP_VERSION, time: nowStr() });
+  return jsonOut({ ok: true, app: APP_NAME, version: APP_VERSION, defaultModel: resolveGeminiModel_(''), fallbackModels: FALLBACK_GEMINI_MODELS, time: nowStr() });
 }
 
 function doPost(e) {
@@ -70,11 +86,20 @@ function doPost(e) {
     latestReport: actLatestReport
   };
 
+  REQ_MODEL = resolveGeminiModel_(req.model);
+  USED_MODEL = '';
+
   try {
     const fn = routes[req.action];
     if (!fn) fail('UNKNOWN_ACTION', '不明な操作です: ' + req.action);
     const result = fn(req) || {};
-    return jsonOut(Object.assign({ ok: true, version: APP_VERSION }, result));
+    const out = Object.assign({ ok: true, version: APP_VERSION }, result);
+    if (USED_MODEL) {
+      out.model = USED_MODEL;
+      out.requestedModel = REQ_MODEL;
+      out.fallback = USED_MODEL !== REQ_MODEL;
+    }
+    return jsonOut(out);
   } catch (err) {
     console.error('[' + req.action + '] ' + ((err && err.stack) || err));
     return jsonOut({
@@ -126,7 +151,7 @@ function setup() {
   }
 
   const defaults = {
-    GEMINI_MODEL: 'gemini-2.5-flash',
+    GEMINI_MODEL: '',   // 空＝自動（汎用の最新モデル）
     GEMINI_TTS_MODEL: 'gemini-2.5-flash-preview-tts',
     TTS_VOICE: 'Kore',
     USE_SEARCH_GROUNDING: 'true',
@@ -145,8 +170,9 @@ function setup() {
 
 /** 動作確認用：Gemini が呼べるかテスト */
 function testGemini() {
+  REQ_MODEL = resolveGeminiModel_('');
   const r = gemini('「こんにちは」とだけ返してください。', { temperature: 0 });
-  Logger.log(r.text);
+  Logger.log('要求モデル: ' + REQ_MODEL + ' / 応答モデル: ' + USED_MODEL + ' / ' + r.text);
 }
 
 /* =========================================================
@@ -439,6 +465,22 @@ function actResetPassword(req) {
 /* =========================================================
  *  Gemini 呼び出し
  * ========================================================= */
+function resolveGeminiModel_(requested) {
+  const req = String(requested || '').trim().toLowerCase();
+  if (req && GEMINI_MODEL_PATTERN.test(req)) return req;
+  const p = String(prop('GEMINI_MODEL', '') || '').trim().toLowerCase();
+  if (p && GEMINI_MODEL_PATTERN.test(p) && LEGACY_DEFAULT_MODELS.indexOf(p) < 0) return p;
+  return FALLBACK_GEMINI_MODELS[0];
+}
+
+/** モデルが存在しない・未公開・権限なし → 次の候補へ切り替えるべきエラーか */
+function isModelUnavailable_(code, text) {
+  if (code === 404) return true;
+  if (code === 403 && /PERMISSION_DENIED|not have access|allowlist|not available/i.test(text)) return true;
+  if (code === 400) return /not found|is not supported|NOT_FOUND|unknown model|invalid model|not available/i.test(text);
+  return false;
+}
+
 function callGemini(model, body) {
   const key = prop('GEMINI_API_KEY', '');
   if (!key) fail('CONFIG', 'GEMINI_API_KEY が設定されていません（スクリプトプロパティ）');
@@ -462,14 +504,34 @@ function callGemini(model, body) {
     }
     break;
   }
-  console.error('Gemini error ' + lastCode + ': ' + lastErr);
+  console.error('Gemini error ' + lastCode + ' (' + model + '): ' + lastErr);
+  if (isModelUnavailable_(lastCode, lastErr)) fail('MODEL_NOT_FOUND', 'AIモデル「' + model + '」が使えませんでした');
   if (lastCode === 429) fail('AI_BUSY', 'AIが混み合っています。少し時間をおいてからお試しください');
   fail('AI', 'AIの呼び出しに失敗しました（' + lastCode + '）');
 }
 
+/** 指定モデル → 汎用の最新モデルの順に試す（文章生成用） */
+function callGeminiAuto(model, body) {
+  const first = model || REQ_MODEL || resolveGeminiModel_('');
+  const candidates = [first].concat(FALLBACK_GEMINI_MODELS.filter(function (m) { return m !== first; }));
+  let lastErr = null;
+  for (let i = 0; i < candidates.length; i++) {
+    try {
+      const data = callGemini(candidates[i], body);
+      USED_MODEL = candidates[i];
+      return data;
+    } catch (e) {
+      if (e.code !== 'MODEL_NOT_FOUND') throw e;
+      lastErr = e;
+      console.warn('Geminiモデル「' + candidates[i] + '」に該当がないため次の候補に切り替えます');
+    }
+  }
+  throw lastErr;
+}
+
 function gemini(prompt, opts) {
   opts = opts || {};
-  const model = opts.model || prop('GEMINI_MODEL', 'gemini-2.5-flash');
+  const model = opts.model || REQ_MODEL || resolveGeminiModel_('');
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: { temperature: (opts.temperature === undefined ? 0.8 : opts.temperature) }
@@ -479,7 +541,7 @@ function gemini(prompt, opts) {
   const tb = prop('THINKING_BUDGET', '');
   if (tb !== '') body.generationConfig.thinkingConfig = { thinkingBudget: Number(tb) };
 
-  const data = callGemini(model, body);
+  const data = callGeminiAuto(model, body);
   const cand = (data.candidates && data.candidates[0]) || {};
   const parts = (cand.content && cand.content.parts) || [];
   const text = parts.map(function (p) { return p.text || ''; }).join('');
@@ -511,7 +573,7 @@ function geminiJson(prompt, opts) {
       const r = gemini(prompt, { search: true, temperature: opts.temperature });
       return { data: parseJson(r.text), sources: r.sources };
     } catch (e) {
-      if (e.code === 'CONFIG' || e.code === 'AI_BUSY') throw e;
+      if (e.code === 'CONFIG' || e.code === 'AI_BUSY' || e.code === 'MODEL_NOT_FOUND') throw e;
       console.warn('検索モード失敗、JSONモードで再試行: ' + e);
     }
   }

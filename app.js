@@ -15,7 +15,10 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* noop */ } },
     del(k) { try { localStorage.removeItem(k); } catch (e) { /* noop */ } }
   };
-  const KEY = { token: 'trs_token', me: 'trs_me', genre: 'trs_genre', help: 'trs_help_hide' };
+  const KEY = { token: 'trs_token', me: 'trs_me', genre: 'trs_genre', help: 'trs_help_hide', model: 'trs_gemini_model' };
+  const MODEL_OPTIONS = Array.isArray(GEM.MODEL_OPTIONS) && GEM.MODEL_OPTIONS.length
+    ? GEM.MODEL_OPTIONS
+    : [{ value: '', label: '自動モード（汎用の最新）' }];
   const STATUS = ['気になる', 'チェックした', '体験した', '日記'];
   const STATUS_CLASS = { '気になる': 'st-like', 'チェックした': 'st-check', '体験した': 'st-done', '日記': 'st-diary' };
 
@@ -70,7 +73,8 @@
     audioCache: new Map(),
     pwForced: false,
     diag: null,
-    recordTarget: null
+    recordTarget: null,
+    model: GEM.MODEL || ''
   };
 
   /* ---------- 読み込み表示・通知 ---------- */
@@ -105,7 +109,7 @@
       const res = await fetch(C.GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(Object.assign({ action, token: state.token }, payload || {})),
+        body: JSON.stringify(Object.assign({ action, token: state.token, model: state.model }, payload || {})),
         signal: ctrl.signal
       });
       const data = await res.json();
@@ -116,6 +120,7 @@
         else if (data.error === 'MUST_CHANGE') openPwModal(true);
         throw err;
       }
+      if (data.model) showUsedModel(data);
       return data;
     } catch (err) {
       if (err.name === 'AbortError') throw new Error('通信に時間がかかりすぎました。もう一度お試しください');
@@ -126,6 +131,37 @@
       clearTimeout(timer);
       if (opt.loading) hideLoading();
     }
+  }
+
+  /* =========================================================
+   *  AIモデル選択
+   * ========================================================= */
+  function modelLabel(v) {
+    const o = MODEL_OPTIONS.find(o => o.value === v);
+    return o ? o.label : (v || '自動モード（汎用の最新）');
+  }
+  function showUsedModel(d) {
+    const el = $('#ver-model');
+    if (!el) return;
+    el.textContent = d.fallback
+      ? d.model + '（' + d.requestedModel + ' が使えなかったため自動で切替）'
+      : d.model;
+    if (d.fallback && state.model) toast('選んだAIモデルが使えなかったため「' + d.model + '」で作成しました');
+  }
+  function setupModelPicker() {
+    const saved = store.get(KEY.model);
+    if (saved !== null && MODEL_OPTIONS.some(o => o.value === saved)) state.model = saved;
+    const sel = $('#model-select');
+    if (!sel) return;
+    sel.innerHTML = MODEL_OPTIONS.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+    sel.value = state.model;
+    sel.addEventListener('change', () => {
+      state.model = sel.value;
+      store.set(KEY.model, state.model);
+      $('#ver-model').textContent = modelLabel(state.model);
+      toast('AIモデルを「' + modelLabel(state.model) + '」にしました');
+    });
+    $('#ver-model').textContent = modelLabel(state.model);
   }
 
   /* =========================================================
@@ -1329,6 +1365,7 @@
     $('#version').textContent = C.VERSION || '';
     document.title = C.APP_NAME || document.title;
     initPwToggles();
+    setupModelPicker();
     bindAuth();
     bindApp();
     renderMap();

@@ -597,3 +597,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--focus); outline:
 .help-faq dd { margin: 2px 0 0; color: var(--ink-2); }
 .help-check { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; font-size: .92rem; margin-top: 4px; }
 .help-check input { width: 22px; height: 22px; min-height: 0; }
+
+/* ---------- AIモデル選択 ---------- */
+.model-picker { margin-top: 14px; max-width: 360px; }
+.model-picker label { display: block; font-size: .85rem; color: var(--ink-3); margin-bottom: 4px; letter-spacing: .04em; }
+.model-picker select { width: 100%; }
+.model-picker .hint { font-size: .78rem; margin-top: 4px; }
+.footer-model { margin-top: 4px; font-size: .78rem; }
+.footer-model code { word-break: break-all; }

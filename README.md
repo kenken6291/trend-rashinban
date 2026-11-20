@@ -34,7 +34,7 @@ GitHub Pages に置くのは `index.html` `style.css` `app.js` `config.js` の 4
 | キー | 内容 | 既定値 |
 |---|---|---|
 | `GEMINI_API_KEY` | Google AI Studio で発行した API キー（必須） | なし |
-| `GEMINI_MODEL` | トレンド抽出・診断・分析に使うモデル | `gemini-2.5-flash` |
+| `GEMINI_MODEL` | 画面で「自動」のときに使うモデル（空＝汎用の最新モデル） | 空 |
 | `GEMINI_TTS_MODEL` | 読み上げ用モデル | `gemini-2.5-flash-preview-tts` |
 | `TTS_VOICE` | 読み上げの声（config.js 側の指定が優先） | `Kore` |
 | `USE_SEARCH_GROUNDING` | Google 検索で最新情報を確認してから地図を作るか | `true` |
@@ -44,7 +44,7 @@ GitHub Pages に置くのは `index.html` `style.css` `app.js` `config.js` の 4
 | `THINKING_BUDGET` | 応答を速くしたいときに `0` などを設定（任意） | 空 |
 
 - `PEPPER` は自動設定されます。**後から変えると全員のパスワードが使えなくなる**ので触らないでください。
-- モデル名は Google 側の提供状況で変わります。新しいモデルに切り替えるときは `GEMINI_MODEL` と `GEMINI_TTS_MODEL` を書き換えるだけで済みます。
+- AIモデルは画面の「AIモデル」で選べます（選択肢は `config.js` の `GEMINI.MODEL_OPTIONS`）。選んだモデルが使えない場合は、GAS 側で `gemini-flash-latest` → `gemini-4-hydrogen` → `gemini-3.8-flash` の順に自動で切り替わります。実際に使われたモデルは画面下部に表示されます。
 - 設定後、関数 `testGemini` を実行してログに「こんにちは」が出れば Gemini との接続は OK です。
 
 ## 3. GAS をウェブアプリとしてデプロイ
@@ -109,7 +109,7 @@ Google Earth Studio で作ったフライスルー動画を表示したい場合
 | 「サーバーにつながりませんでした」 | config.js の `GAS_URL`、デプロイの「アクセスできるユーザー：全員」 |
 | 「サーバーの応答を読み取れませんでした」 | GAS の再デプロイ（新バージョン）、権限の承認が済んでいるか |
 | 「GEMINI_API_KEY が設定されていません」 | スクリプトプロパティのキー名と値 |
-| 「AIの呼び出しに失敗しました（404）」 | `GEMINI_MODEL` などのモデル名が現在も提供されているか |
+| 「AIの呼び出しに失敗しました（404）」 | `GEMINI_TTS_MODEL` のモデル名が現在も提供されているか（文章生成は自動で切り替わります） |
 | 「AIが混み合っています」 | 無料枠の上限。少し時間をおくか、`USE_SEARCH_GROUNDING` を `false` に |
 | 音声が鳴らない | `GEMINI_TTS_MODEL` のモデル名、スマホのマナーモード |
 | 仮パスワードのメールが届かない | 迷惑メールフォルダ、GAS の 1 日あたりのメール送信上限。テスト中は `SHOW_TEMP_PASSWORD` を `true` に |

@@ -97,6 +97,11 @@
           <button type="button" id="btn-analyze" class="btn primary">流行を地図にする</button>
           <button type="button" id="btn-refresh" class="btn ghost" disabled>最新の情報で作り直す</button>
         </div>
+        <div class="model-picker">
+          <label for="model-select">AIモデル</label>
+          <select id="model-select"></select>
+          <p class="hint">選んだモデルが使えない時は、汎用の最新モデルに自動で切り替わります</p>
+        </div>
       </div>
 
       <div class="map-layout">
@@ -176,6 +181,7 @@
 
 <footer class="footer">
   <p>トレンド羅針盤 <span id="version"></span></p>
+  <p class="footer-model">AIモデル：<code id="ver-model">-</code></p>
 </footer>
 
 <datalist id="genre-datalist"></datalist>
